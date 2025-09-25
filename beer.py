@@ -25,7 +25,10 @@ def addNewStyle(user, data):
     return styles
 
 def getBreweriesList(data):
-    return list(data['breweries'].keys())
+    if 'breweries' in data:
+        return list(data['breweries'].keys())
+    
+    return []
 
 def rateBeer(user_data):
     styles = user_data['styles'] if 'styles' in user_data else []
