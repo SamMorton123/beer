@@ -134,6 +134,35 @@ def getBreweryRatings(bdata):
     
     return sorted(ratings, key = lambda b: b[1], reverse = True) + unrated
 
+def getStyleRatings(brewery_data):
+    styles = {}
+    for brewery in brewery_data:
+        for beer in brewery_data[brewery]:
+            style = beer['style']
+            name = beer['name']
+            rating = beer['rating']
+            brewery = beer['brewery']
+            if style in styles:
+                if (brewery, name) in styles[style]:
+                    styles[style][(brewery, name)].append(rating)
+                else:
+                    styles[style][(brewery, name)] = [rating]
+            else:
+                styles[style] = { (brewery, name): [rating] }
+
+    style_ratings = []
+    for style in styles:
+        if len(styles[style]) == 0:
+            continue
+
+        ratings_for_this_style = []
+        for tup in styles[style]:
+            specific_beer_rating = np.mean(styles[style][tup])
+            ratings_for_this_style.append(specific_beer_rating)
+        style_ratings.append((style, round(np.mean(ratings_for_this_style), 2), len(ratings_for_this_style)))
+    
+    return sorted(style_ratings, key=lambda tup: tup[1], reverse=True)
+
 def saveFile(data):
     f = open('data/beer_data.json', 'w')
     json.dump(data, f)
@@ -159,7 +188,7 @@ else:
 
 # Allow the user to enter add a style mode or add a rating mode
 print('\n\nWould you like to...')
-modes = ['Rate a beer', 'Re-rate a beer', 'Add a new beer style', 'Just see the rankings']
+modes = ['Rate a beer', 'Re-rate a beer', 'Add a new beer style', 'Just see the rankings', 'See ratings by style']
 modes_menu = TerminalMenu(modes)
 mode = modes[modes_menu.show()]
 
@@ -205,4 +234,10 @@ if mode == 'Re-rate a beer':
     for brewery in ratings:
         print(f'{brewery[0]} - {brewery[1]}')
 
-# if mode == 'See ratings by style:'
+if mode == 'See ratings by style':
+    clear_terminal()
+    ratings = getStyleRatings(user_data['breweries'])
+    print('Rankings:')
+    for i in range(len(ratings)):
+        style, rating, count = ratings[i]
+        print(f'{i + 1}. {style} - {rating} ({count})')
