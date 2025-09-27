@@ -30,6 +30,13 @@ def getBreweriesList(data):
     
     return []
 
+def getBreweryBeerList(bdata, name):
+    if 'breweries' not in bdata:
+        return []
+    
+    brewery_data = bdata['breweries'][name]
+    return list(set([d['name'] for d in brewery_data]))
+
 def rateBeer(user_data):
     styles = user_data['styles'] if 'styles' in user_data else []
     breweries = getBreweriesList(user_data) + ['Add a new brewery']
@@ -59,6 +66,38 @@ def rateBeer(user_data):
         'rating': rating
     }
 
+def rerateBeer(user_data):
+    breweries = getBreweriesList(user_data)
+    if len(breweries) == 0:
+        return None
+    print('Which brewery is the beer from?')
+    breweries_menu = TerminalMenu(breweries)
+    brewery_name = breweries[breweries_menu.show()]
+    clear_terminal()
+
+    print('Which beer was it?')
+    beers = getBreweryBeerList(user_data, brewery_name)
+    beers_menu = TerminalMenu(beers)
+    beer_name = beers[beers_menu.show()]
+    clear_terminal()
+
+    rating = float(input('Rate your beer (out of 10): ').strip())
+    clear_terminal()
+
+    brewery_beer_objs = user_data['breweries'][brewery_name]
+    brew_obj = None
+    for bo in brewery_beer_objs:
+        if bo['name'] == beer_name:
+            brew_obj = bo
+            break
+
+    if brew_obj is None:
+        return None
+    
+    new_beer_obj = { 'name': beer_name, 'style': brew_obj['style'], 'brewery': brewery_name, 'rating': rating }
+    user_data['breweries'][brewery_name].append(new_beer_obj)
+    return user_data
+
 def getRating(ratings):
     if (len(ratings)) < 2:
         return None
@@ -69,11 +108,24 @@ def getRating(ratings):
         if r > 9.5: num_over_threshold += 1
     return round(avg + (num_over_threshold * 0.2), 2)
 
-def getBreweryRatings(data):
+def getBreweryRatingsPerBeer(brewery_beer_data):
+    beers = {}
+    for beer in brewery_beer_data:
+        name = beer['name']
+        rating = beer['rating']
+
+        if name in beers:
+            beers[name].append(rating)
+        else:
+            beers[name] = [rating]
+    
+    return [np.mean(beers[b]) for b in beers]
+
+def getBreweryRatings(bdata):
     ratings = []
     unrated = []
-    for b in data:
-        brew_ratings = [beer['rating'] for beer in data[b]]
+    for b in bdata:
+        brew_ratings = getBreweryRatingsPerBeer(bdata[b])
         brewery_rating = getRating(brew_ratings)
         if (brewery_rating is None):
             unrated.append((b, 'unrated'))
@@ -107,7 +159,7 @@ else:
 
 # Allow the user to enter add a style mode or add a rating mode
 print('\n\nWould you like to...')
-modes = ['Rate a beer', 'Add a new beer style', 'Just see the rankings']
+modes = ['Rate a beer', 'Re-rate a beer', 'Add a new beer style', 'Just see the rankings']
 modes_menu = TerminalMenu(modes)
 mode = modes[modes_menu.show()]
 
@@ -144,6 +196,13 @@ if mode == 'Just see the rankings':
     for i in range(len(ratings)):
         print(f'{i + 1}. {ratings[i][0]} - {ratings[i][1]}')
 
+if mode == 'Re-rate a beer':
+    new_user_data = rerateBeer(user_data)
+    data[user] = new_user_data
+    saveFile(data)
 
+    ratings = getBreweryRatings(new_user_data['breweries'])
+    for brewery in ratings:
+        print(f'{brewery[0]} - {brewery[1]}')
 
-
+# if mode == 'See ratings by style:'
