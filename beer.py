@@ -274,6 +274,14 @@ if mode == 'See ratings by style':
     clear_terminal()
     ratings = getStyleRatings(user_data['breweries'])
     print('Rankings:')
-    for i in range(len(ratings)):
-        style, rating, count = ratings[i]
+    thresh = 3
+    high_cardinality = [tup for tup in ratings if tup[2] >= thresh]
+    for i in range(len(high_cardinality)):
+        style, rating, count = high_cardinality[i]
+        print(f'{i + 1}. {style} - {rating} ({count})')
+    
+    print('\n\nRankings for styles with too few ratings:')
+    low_cardinality = [tup for tup in ratings if tup[2] < thresh]
+    for i in range(len(low_cardinality)):
+        style, rating, count = low_cardinality[i]
         print(f'{i + 1}. {style} - {rating} ({count})')
