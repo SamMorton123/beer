@@ -98,11 +98,14 @@ def rerateBeer(user_data):
     user_data['breweries'][brewery_name].append(new_beer_obj)
     return user_data
 
-def getRating(ratings):
+def getBreweryScore(ratings):
     if (len(ratings)) < 2:
         return None
     
-    return round(np.mean(ratings), 2)
+    numerator = sum([d['beer_rating'] * d['style_mean_rating'] for d in ratings])
+    denominator = sum([d['style_mean_rating'] for d in ratings])
+
+    return round(numerator / denominator, 2)
 
 def getRatingsListsByStyle(brewery_data):
     styles = {}
@@ -173,13 +176,14 @@ def getScaledBreweryRatingsPerBeer(brewery_beer_data, style_ratings):
         rating = beer['rating']
         style = beer['style']
         scaled_rating = getScaledRatingForStyle(style_ratings[style], rating)
+        style_mean_rating = np.mean(style_ratings[style])
 
         if name in beers:
-            beers[name].append(scaled_rating)
+            beers[name]['ratings_array'].append(scaled_rating)
         else:
-            beers[name] = [scaled_rating]
+            beers[name] = { 'style_mean_rating': style_mean_rating, 'ratings_array': [scaled_rating] }
     
-    return [np.mean(beers[b]) for b in beers]
+    return [{ 'beer_rating': np.mean(beers[b]['ratings_array']), 'style_mean_rating': beers[b]['style_mean_rating'] } for b in beers]
 
 def getBreweryRatings(user_data):
     sdata = user_data['styles'] if 'styles' in user_data else [] 
@@ -191,7 +195,7 @@ def getBreweryRatings(user_data):
     unrated = []
     for b in bdata:
         brew_ratings = getScaledBreweryRatingsPerBeer(bdata[b], style_ratings)
-        brewery_rating = getRating(brew_ratings)
+        brewery_rating = getBreweryScore(brew_ratings)
         if (brewery_rating is None):
             unrated.append((b, 'unrated'))
         else:
