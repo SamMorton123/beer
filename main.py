@@ -210,32 +210,18 @@ else:
 user = User(user_name, user_data)
 
 # modes = ['Rate a beer', 'Re-rate a beer', 'Add a new beer style', 'Just see the rankings', 'See ratings by style']
-mode = getInteractiveMenuResponse('Would you like to...',  ['Add a new beer style'])
+mode = getInteractiveMenuResponse('Would you like to...',  ['Add a new beer style', 'Rate a beer'])
 clear_terminal()
 
 if mode == 'Add a new beer style':
-    # styles = addNewStyle(user, user_data)
     user.interactiveAddNewStyle()
     data[user_name] = user.getUpdatedUserData()
     saveFile(data)
 
-# if mode == 'Rate a beer':
-#     user_beer_data = user_data['breweries'] if 'breweries' in user_data else {}
-#     beer = rateBeer(user_data)
-    
-#     if beer['brewery'] in user_beer_data:
-#         user_beer_data[beer['brewery']].append(beer)
-#     else:
-#         user_beer_data[beer['brewery']] = [beer]
-    
-#     print('Your beer ratings are now:')
-#     ratings = getBreweryRatings(user_data)
-#     for brewery in ratings:
-#         print(f'{brewery[0]} - {brewery[1]}')
-
-#     user_data['breweries'] = user_beer_data
-#     data[user] = user_data
-#     saveFile(data)
+if mode == 'Rate a beer':
+    user.interactiveRateNewBeer()
+    data[user_name] = user.getUpdatedUserData()
+    saveFile(data)
 
 # if mode == 'Just see the rankings':
 #     user_beer_data = user_data['breweries'] if 'breweries' in user_data else {}
