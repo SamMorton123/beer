@@ -3,26 +3,10 @@ import json
 import numpy as np
 import os
 
-ADD_NEW_USER = 'Add new user'
+from src.user import User
+from src.utils import getInteractiveMenuResponse, clear_terminal
 
-def addNewStyle(user, data):
-    styles = data['styles'] if 'styles' in data else []
-    adding_styles = True
-    while adding_styles:
-        new_style = input('Enter your new style name: ').strip()
-        if new_style not in styles:
-            styles.append(new_style)
-        print('Would you like to add another?')
-        options = ['Yes', 'No']
-        menu = TerminalMenu(options)
-        if options[menu.show()] == 'No':
-            adding_styles = False
-    
-    print('\n\nYour style list is now:')
-    for style in styles:
-        print(f'- {style}')
-    
-    return styles
+ADD_NEW_USER = 'Add new user'
 
 def getBreweriesList(data):
     if 'breweries' in data:
@@ -208,9 +192,6 @@ def saveFile(data):
     json.dump(data, f)
     f.close()
 
-def clear_terminal():
-    os.system('cls' if os.name == 'nt' else 'clear')
-
 f = open('data/beer_data.json')
 data = json.load(f)
 f.close()
@@ -218,74 +199,72 @@ f.close()
 # assumes first keys in the data are names of users
 user_names = list(data.keys()) + [ADD_NEW_USER]
 name_menu = TerminalMenu(user_names)
-user = user_names[name_menu.show()]
+user_name = user_names[name_menu.show()]
 
 user_data = {}
-if user == ADD_NEW_USER:
-    user = input('What is your name? ').strip()
+if user_name == ADD_NEW_USER:
+    user_name = input('What is your name? ').strip()
 else:
-    user_data = data[user]
+    user_data = data[user_name]
 
-# Allow the user to enter add a style mode or add a rating mode
-print('\n\nWould you like to...')
-modes = ['Rate a beer', 'Re-rate a beer', 'Add a new beer style', 'Just see the rankings', 'See ratings by style']
-modes_menu = TerminalMenu(modes)
-mode = modes[modes_menu.show()]
+user = User(user_name, user_data)
 
+# modes = ['Rate a beer', 'Re-rate a beer', 'Add a new beer style', 'Just see the rankings', 'See ratings by style']
+mode = getInteractiveMenuResponse('Would you like to...',  ['Add a new beer style'])
 clear_terminal()
+
 if mode == 'Add a new beer style':
-    styles = addNewStyle(user, user_data)
-    user_data['styles'] = styles
-    data[user] = user_data
-
+    # styles = addNewStyle(user, user_data)
+    user.interactiveAddNewStyle()
+    data[user_name] = user.getUpdatedUserData()
     saveFile(data)
 
-if mode == 'Rate a beer':
-    user_beer_data = user_data['breweries'] if 'breweries' in user_data else {}
-    beer = rateBeer(user_data)
+# if mode == 'Rate a beer':
+#     user_beer_data = user_data['breweries'] if 'breweries' in user_data else {}
+#     beer = rateBeer(user_data)
     
-    if beer['brewery'] in user_beer_data:
-        user_beer_data[beer['brewery']].append(beer)
-    else:
-        user_beer_data[beer['brewery']] = [beer]
+#     if beer['brewery'] in user_beer_data:
+#         user_beer_data[beer['brewery']].append(beer)
+#     else:
+#         user_beer_data[beer['brewery']] = [beer]
     
-    print('Your beer ratings are now:')
-    ratings = getBreweryRatings(user_data)
-    for brewery in ratings:
-        print(f'{brewery[0]} - {brewery[1]}')
+#     print('Your beer ratings are now:')
+#     ratings = getBreweryRatings(user_data)
+#     for brewery in ratings:
+#         print(f'{brewery[0]} - {brewery[1]}')
 
-    user_data['breweries'] = user_beer_data
-    data[user] = user_data
-    saveFile(data)
+#     user_data['breweries'] = user_beer_data
+#     data[user] = user_data
+#     saveFile(data)
 
-if mode == 'Just see the rankings':
-    user_beer_data = user_data['breweries'] if 'breweries' in user_data else {}
-    print('Your ratings:')
-    ratings = getBreweryRatings(user_data)
-    for i in range(len(ratings)):
-        print(f'{i + 1}. {ratings[i][0]} - {ratings[i][1]}')
+# if mode == 'Just see the rankings':
+#     user_beer_data = user_data['breweries'] if 'breweries' in user_data else {}
+#     print('Your ratings:')
+#     ratings = getBreweryRatings(user_data)
+#     for i in range(len(ratings)):
+#         print(f'{i + 1}. {ratings[i][0]} - {ratings[i][1]}')
 
-if mode == 'Re-rate a beer':
-    new_user_data = rerateBeer(user_data)
-    data[user] = new_user_data
-    saveFile(data)
+# if mode == 'Re-rate a beer':
+#     new_user_data = rerateBeer(user_data)
+#     data[user] = new_user_data
+#     saveFile(data)
 
-    ratings = getBreweryRatings(new_user_data)
-    for brewery in ratings:
-        print(f'{brewery[0]} - {brewery[1]}')
+#     ratings = getBreweryRatings(new_user_data)
+#     for brewery in ratings:
+#         print(f'{brewery[0]} - {brewery[1]}')
 
-if mode == 'See ratings by style':
-    clear_terminal()
-    ratings = getStyleRatings(user_data['breweries'])
-    print('Rankings:')
-    thresh = 3
-    high_cardinality = [tup for tup in ratings if tup[2] >= thresh]
-    for i in range(len(high_cardinality)):
-        style, rating, count = high_cardinality[i]
-        print(f'{i + 1}. {style} - {rating} ({count})')
+# if mode == 'See ratings by style':
+#     clear_terminal()
+#     ratings = getStyleRatings(user_data['breweries'])
+#     print('Rankings:')
+#     thresh = 3
+#     high_cardinality = [tup for tup in ratings if tup[2] >= thresh]
+#     for i in range(len(high_cardinality)):
+#         style, rating, count = high_cardinality[i]
+#         print(f'{i + 1}. {style} - {rating} ({count})')
     
-    print('\n\nRankings for styles with too few ratings:')
-    low_cardinality = [tup for tup in ratings if tup[2] < thresh]
-    for i in range(len(low_cardinality)):
-        style, rating, count = low_cardinality[i]
-        print(f'{i + 1}. {style} - {rating} ({count})')
+#     print('\n\nRankings for styles with too few ratings:')
+#     low_cardinality = [tup for tup in ratings if tup[2] < thresh]
+#     for i in range(len(low_cardinality)):
+#         style, rating, count = low_cardinality[i]
+#         print(f'{i + 1}. {style} - {rating} ({count})')
