@@ -75,3 +75,34 @@ class User:
             for brewery_name in self.breweries
         }
         return self.raw_data
+    
+    def getBreweryRatings(self):
+        pass
+    
+    def getStyleRatings(self):
+        ratings_by_style = self._getRatingsListsByStyle()
+        
+        style_ratings = []
+        for style_name in ratings_by_style:
+            style_ratings.append((
+                style_name, round(np.mean(ratings_by_style[style_name]), 2), len(ratings_by_style[style_name])
+            ))
+
+        return sorted(style_ratings, key=lambda tup: tup[1], reverse=True)
+    
+    def _getRatingsListsByStyle(self):
+        style_ratings_lists = {}
+        for style_name in self.styles:
+            style_beer_rating_arrays = {}
+            for beer in self.styles[style_name].tagged_beers:
+                if beer.name in style_beer_rating_arrays:
+                    style_beer_rating_arrays[beer.name].append(beer.rating)
+                else:
+                    style_beer_rating_arrays[beer.name] = [beer.rating]
+
+            style_ratings_lists[style_name] = [
+                np.mean(style_beer_rating_arrays[beer_name])
+                for beer_name in style_beer_rating_arrays
+            ]
+
+        return style_ratings_lists

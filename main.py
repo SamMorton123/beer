@@ -210,7 +210,7 @@ else:
 user = User(user_name, user_data)
 
 # modes = ['Rate a beer', 'Re-rate a beer', 'Add a new beer style', 'Just see the rankings', 'See ratings by style']
-mode = getInteractiveMenuResponse('Would you like to...',  ['Add a new beer style', 'Rate a beer'])
+mode = getInteractiveMenuResponse('Would you like to...',  ['Add a new beer style', 'Rate a beer', 'See ratings by style'])
 clear_terminal()
 
 if mode == 'Add a new beer style':
@@ -239,18 +239,17 @@ if mode == 'Rate a beer':
 #     for brewery in ratings:
 #         print(f'{brewery[0]} - {brewery[1]}')
 
-# if mode == 'See ratings by style':
-#     clear_terminal()
-#     ratings = getStyleRatings(user_data['breweries'])
-#     print('Rankings:')
-#     thresh = 3
-#     high_cardinality = [tup for tup in ratings if tup[2] >= thresh]
-#     for i in range(len(high_cardinality)):
-#         style, rating, count = high_cardinality[i]
-#         print(f'{i + 1}. {style} - {rating} ({count})')
+if mode == 'See ratings by style':
+    ratings = getStyleRatings(user_data['breweries'])
+    print('Rankings:')
+    thresh = 3
+    high_cardinality = [tup for tup in ratings if tup[2] >= thresh]
+    for i in range(len(high_cardinality)):
+        style, rating, count = high_cardinality[i]
+        print(f'{i + 1}. {style} - {rating} ({count})')
     
-#     print('\n\nRankings for styles with too few ratings:')
-#     low_cardinality = [tup for tup in ratings if tup[2] < thresh]
-#     for i in range(len(low_cardinality)):
-#         style, rating, count = low_cardinality[i]
-#         print(f'{i + 1}. {style} - {rating} ({count})')
+    print('\n\nRankings for styles with too few ratings:')
+    low_cardinality = [tup for tup in ratings if tup[2] < thresh]
+    for i in range(len(low_cardinality)):
+        style, rating, count = low_cardinality[i]
+        print(f'{i + 1}. {style} - {rating} ({count})')
