@@ -53,6 +53,11 @@ class User:
 
         brewery_lst = list(self.breweries.keys()) + ['Add new brewery']
         brewery_name = getInteractiveMenuResponse('What brewery is it from?', brewery_lst)
+        clear_terminal()
+
+        if brewery_name == 'Add new brewery':
+            brewery_name = getUserInput('What is the name of the brewery? ')
+            clear_terminal()
 
         style_name = getInteractiveMenuResponse("Select your beer's style from the dropdown below:", list(self.styles.keys()))
         clear_terminal()
@@ -61,6 +66,31 @@ class User:
         clear_terminal()
 
         self._save_new_beer(new_beer_name, brewery_name, style_name, rating)
+
+        if verbose:
+            self.getBreweryRatings()
+    
+    def interactiveRerateBeer(self, verbose = True):
+        breweries_lst = list(self.breweries.keys())
+        if len(breweries_lst) == 0:
+            print('No beers to rate')
+            return
+        
+        brewery_name = getInteractiveMenuResponse('Which brewery is the beer from?', breweries_lst)
+        brewery = self.breweries[brewery_name]
+        clear_terminal()
+
+        beer_name = getInteractiveMenuResponse('Which beer do you want to rate?', [beer.name for beer in brewery.beers])
+        beer = next((beer for beer in brewery.beers if beer.name == beer_name), None)
+        clear_terminal()
+
+        new_rating = float(getUserInput('Rate your beer (out of 10): '))
+        clear_terminal()
+
+        self._save_new_beer(beer.name, brewery_name, beer.style_name, new_rating)
+
+        if verbose:
+            self.getBreweryRatings()
 
     def _save_new_beer(self, name, brewery_name, style_name, rating):
         if brewery_name not in self.breweries:
@@ -92,7 +122,12 @@ class User:
             else:
                 rated_breweries.append(brewery)
         
-        return (sorted(rated_breweries, key=lambda b: b.score, reverse = True), unrated_breweries)
+        rated_breweries.sort(key=lambda b: b.score, reverse = True)
+
+        for i in range(len(rated_breweries)):
+            print(f'{i + 1}. {rated_breweries[i].getRatingString()}')
+        
+        return (rated_breweries, unrated_breweries)
     
     def getStyleRatings(self, verbose = True, cardinality_threshold = 3):
         ratings_by_style = self._getRatingsListsByStyle()

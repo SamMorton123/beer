@@ -224,19 +224,12 @@ if mode == 'Rate a beer':
     saveFile(data)
 
 if mode == 'Just see the rankings':
-    rated_breweries, unrated_breweries = user.getBreweryRatings()
+    user.getBreweryRatings()
 
-    for i in range(len(rated_breweries)):
-        print(f'{i + 1}. {rated_breweries[i].getRatingString()}')
-
-# if mode == 'Re-rate a beer':
-#     new_user_data = rerateBeer(user_data)
-#     data[user] = new_user_data
-#     saveFile(data)
-
-#     ratings = getBreweryRatings(new_user_data)
-#     for brewery in ratings:
-#         print(f'{brewery[0]} - {brewery[1]}')
+if mode == 'Re-rate a beer':
+    user.interactiveRerateBeer()
+    data[user_name] = user.getUpdatedUserData()
+    saveFile(data)
 
 if mode == 'See ratings by style':
     user.getStyleRatings()
