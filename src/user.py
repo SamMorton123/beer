@@ -1,3 +1,5 @@
+import numpy as np
+
 from src.utils import getUserInput, getInteractiveMenuResponse, clear_terminal
 from src.style import Style
 from src.brewery import Brewery
@@ -77,23 +79,60 @@ class User:
         return self.raw_data
     
     def getBreweryRatings(self):
-        pass
+        ratings_lists_by_style = self._getRatingsListsByStyle()
+
+        rated_breweries = []
+        unrated_breweries = []
+        for brewery_name in self.breweries:
+            brewery = self.breweries[brewery_name]
+            brewery.generateScore(ratings_lists_by_style)
+
+            if brewery.score is None:
+                unrated_breweries.append(brewery)
+            else:
+                rated_breweries.append(brewery)
+        
+        return (sorted(rated_breweries, key=lambda b: b.score, reverse = True), unrated_breweries)
     
-    def getStyleRatings(self):
+    def getStyleRatings(self, verbose = True, cardinality_threshold = 3):
         ratings_by_style = self._getRatingsListsByStyle()
         
         style_ratings = []
         for style_name in ratings_by_style:
-            style_ratings.append((
-                style_name, round(np.mean(ratings_by_style[style_name]), 2), len(ratings_by_style[style_name])
-            ))
+            num_beers_for_style = len(ratings_by_style[style_name])
 
-        return sorted(style_ratings, key=lambda tup: tup[1], reverse=True)
+            if num_beers_for_style > 0:
+                style_ratings.append((
+                    style_name, round(np.mean(ratings_by_style[style_name]), 2), num_beers_for_style
+                ))
+
+        sorted_ratings = sorted(style_ratings, key=lambda tup: tup[1], reverse=True)
+
+        print('Rankings:')
+        
+        low_cardinality_styles = []
+        high_cardinality_rank = 1
+        for tup in sorted_ratings:
+            style, rating, count = tup
+            
+            if count >= cardinality_threshold:
+                print(f'{high_cardinality_rank}. {style} - {rating} ({count})')
+                high_cardinality_rank += 1
+            else:
+                low_cardinality_styles.append(tup)
+    
+        print('\n\nRankings for styles with too few ratings:')
+
+        for i in range(len(low_cardinality_styles)):
+            style, rating, count = low_cardinality_styles[i]
+            print(f'{i + 1}. {style} - {rating} ({count})')
     
     def _getRatingsListsByStyle(self):
         style_ratings_lists = {}
+        
         for style_name in self.styles:
             style_beer_rating_arrays = {}
+            
             for beer in self.styles[style_name].tagged_beers:
                 if beer.name in style_beer_rating_arrays:
                     style_beer_rating_arrays[beer.name].append(beer.rating)
