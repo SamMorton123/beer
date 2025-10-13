@@ -31,5 +31,9 @@ class Beer:
         style_mean = np.mean(ratings_for_style)
         style_std = np.std(ratings_for_style)
 
+        if (style_std == 0):
+            self.scaled_rating = self.rating
+            return self.scaled_rating
+
         self.scaled_rating = style_mean + 1.5 * ((self.rating - style_mean) / style_std)
         return self.scaled_rating
