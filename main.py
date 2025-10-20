@@ -23,7 +23,7 @@ else:
 
 user = User(user_name, user_data)
 
-modes = ['Rate a beer', 'Re-rate a beer', 'Add a new beer style', 'Just see the rankings', 'See ratings by style']
+modes = ['Rate a beer', 'Re-rate a beer', 'Add a new beer style', 'Just see the rankings', 'See ratings by style', 'See beer rankings by style']
 mode = getInteractiveMenuResponse('Would you like to...',  modes)
 clear_terminal()
 
@@ -47,3 +47,6 @@ if mode == 'Re-rate a beer':
 
 if mode == 'See ratings by style':
     user.getStyleRatings()
+
+if mode == 'See beer rankings by style':
+    user.interactiveSeeRatingsForStyle()

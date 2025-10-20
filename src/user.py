@@ -91,6 +91,17 @@ class User:
 
         if verbose:
             self.getBreweryRatings()
+    
+    def interactiveSeeRatingsForStyle(self):
+        style_name = getInteractiveMenuResponse('Which style?', list(self.styles.keys()))
+        selected_style = self.styles[style_name]
+        clear_terminal()
+
+        sorted_list = sorted(selected_style.tagged_beers, key=lambda b: b.rating, reverse = True)
+        print(f'Ratings for {style_name}s:\n')
+        for i, beer in enumerate(sorted_list):
+            print(f'{i + 1}. {beer.name} ({beer.brewery_name}) - {beer.rating}')
+
 
     def _save_new_beer(self, name, brewery_name, style_name, rating):
         if brewery_name not in self.breweries:
