@@ -1,3 +1,5 @@
+import numpy as np
+
 class Style:
     def __init__(self, name):
         self.name = name

@@ -34,12 +34,19 @@ class Brewery:
             self.score = None
             return self.score
 
-        mean_style_ratings = {style: np.mean(ratings_lists_by_style[style]) for style in ratings_lists_by_style if len(ratings_lists_by_style[style]) > 0}
+        mean_style_ratings = {
+            style: np.mean(ratings_lists_by_style[style])
+            for style in ratings_lists_by_style
+            if len(ratings_lists_by_style[style]) > 0
+        }
+
+        style_lists = [ratings_lists_by_style[style] for style in ratings_lists_by_style]
+        all_user_ratings = [rating for lst in style_lists for rating in lst]
 
         numerator = 0
         denominator = 0
         for beer in self.beers:
-            beer.generateScaledScore(ratings_lists_by_style[beer.style_name])
+            beer.generateScaledScore(ratings_lists_by_style[beer.style_name], all_user_ratings = all_user_ratings)
 
             weighted_score_from_beer = beer.scaled_rating * mean_style_ratings[beer.style_name]
             numerator += weighted_score_from_beer
